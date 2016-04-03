@@ -1,0 +1,18 @@
+{
+    "name": "deviateltd/silverstripe-advancedcontent",
+    "type": "silverstripe-module",
+    "description": "Turbo boost your SilverStripe content-editing abilities.",
+    "homepage": "http://www.deviate.net.nz/",
+    "license": "BSD",
+    "keywords": ["silverstripe", "deviate", "advanced", "content"],
+    "authors": [
+        {
+            "name": "Russell Michell",
+            "email": "russell.michell@deviate.net.nz"
+        }
+    ],
+    "require": {
+        "silverstripe/framework": ">=3.1",
+        "silverstripe/cms": ">=3.1"
+    }
+}
