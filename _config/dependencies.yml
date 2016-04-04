@@ -1,0 +1,13 @@
+---
+Name: advancedcontentserviceconfig
+After:
+  - 'framework/*'
+  - 'cms/*'
+---
+
+ACBlock:
+  dependencies: 
+    acService: %$AdvancedContentService
+AdvancedContentExtension:
+  dependencies: 
+    acService: %$AdvancedContentService

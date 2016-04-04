@@ -1,0 +1,13 @@
+---
+Name: advancedcontentextensions
+After:
+  - 'framework/*'
+  - 'cms/*'
+---
+
+SiteTree:
+  extensions:
+    - AdvancedContentExtension
+File:
+  extensions:
+    - AdvancedContentFileExtension

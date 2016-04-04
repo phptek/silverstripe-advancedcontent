@@ -1,0 +1,24 @@
+#advanced-content-attribute-controls.outer {
+    position: absolute;
+    top: 0;
+    right: 100px;
+    min-height: 75px;
+    min-width: 100px;
+    padding: 5px;
+    background: #EFEFEF;
+    border-radius: 3px;
+    border: solid 1px #CCC;
+    z-index: 10000;
+}
+
+#advanced-content-attribute-controls.outer .inner h4 {
+    font-size: 11px;
+    margin: 0;
+    padding: 0;
+}
+
+#advanced-content-attribute-controls.outer .inner input {
+    font-size: 11px;
+    margin: 0;
+    padding: 0;
+}

@@ -1,0 +1,13 @@
+---
+Name: advancedcontentattributes
+After:
+  - 'framework/*'
+  - 'cms/*'
+---
+
+TextObject:
+  # To disable, simple use `attributes_disabled` in userland code.
+  attributes_enabled:
+    - AdvancedContentAttribute_BlockCSS
+    - AdvancedContentAttribute_Embargo
+    - AdvancedContentAttribute_Expiry

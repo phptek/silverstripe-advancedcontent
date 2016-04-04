@@ -4,5 +4,9 @@
  * @package silverstripe-advancedccontent
  */
 
-define('ADVANCEDCONTENT_DIR', 'silverstripe-advancedcontent');
+define('ADVANCEDCONTENT_DIR', 'advancedcontent');
 define('ADVANCEDCONTENT_NAME', 'Advanced Content');
+
+if ((bool)floatval(phpversion()) < 5.4) {
+    throw new Exception('Minimum PHP version is 5.4.');
+}
