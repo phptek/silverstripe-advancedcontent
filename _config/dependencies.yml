@@ -5,7 +5,7 @@ After:
   - 'cms/*'
 ---
 
-ACBlock:
+AdvancedContentBlock:
   dependencies: 
     acService: %$AdvancedContentService
 AdvancedContentExtension:

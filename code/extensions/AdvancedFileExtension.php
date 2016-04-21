@@ -10,7 +10,7 @@ class AdvancedContentFileExtension extends DataExtension
 {
 
     /**
-     * Called when an {@link ACBlock} is deleted in the CMS. 
+     * Called when an {@link AdvancedContentBlock} is deleted in the CMS. 
      * Checks the system to see if this {@link File} object is used anywhere. If it isn't, it can be safely deleted,
      * otherwise we leave it alone.
      * 

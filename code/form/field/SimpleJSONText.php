@@ -69,9 +69,10 @@ class SimpleJSONText extends StringField
     }
 
     /**
-     * Returns the value of this field as an associative array
+     * Returns the value of this field as an associative array.
+     * 
      * @return array
-     * @throws AdvancedContentException 
+     * @throws SimpleJSONException 
      */
     public function getValueAsArray()
     {
@@ -110,14 +111,14 @@ class SimpleJSONText extends StringField
     }
 
     /**
-     * Set a value for a specific JSON key, and return the lot back so that it ca be written to the field by
+     * Set a value for a specific JSON key, and return the lot back so that it can be written to the field by
      * calling logic.
      * 
      * @param mixed $key The JSON key who's value should be modified with $value.
      * @param array $value The array of data that should update existing field-data identified by $key.
      * @return string
      */
-    public function setValueForKey($key, $value)
+    public function setValueToKey($key, $value)
     {
         $currentData = $this->getValueAsArray();
         $currentData[$key] = $value;
@@ -128,7 +129,7 @@ class SimpleJSONText extends StringField
         // Cleanup
         if ($isValid) {
             array_walk_recursive($currentData, function ($v, $k) use (&$array) {
-                $array[$k] = stripslashes($v);
+                $array[$k] = Convert::raw2sql($v);
             });
         }
 

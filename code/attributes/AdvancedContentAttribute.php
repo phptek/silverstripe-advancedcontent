@@ -9,12 +9,20 @@
  * and userland YML.
  * 
  * The value for each attribute is stored in the related block's "Attributes" field in a simple, structured JSON format.
+ * 
+ * Questions:
+ * 
+ * Q: Why not use a SS DataExtension?
+ * A:   - I wanted to enforce a specific API via abstract classes, which AFAIK you cannot do using {@link Extension}.
+ *      - Extensions cannot be subclassed (Not as at SS 3.0 anyway)
+ * Q: Why not use a similar approach to GridField config components instead of baking-in atttributes via YML
+ * A: Excellent question. Let's add that to the roadmap then eh?
  *
  * @package silverstripe-advancedcontent
  * @subpackage attributes
  * @author Russell Michell 2016 <russ@theruss.com>
  */
-abstract class AdvancedContentAttribute extends Object
+    abstract class AdvancedContentAttribute extends Object
 {
 
     /**
@@ -51,6 +59,30 @@ abstract class AdvancedContentAttribute extends Object
      * @return string
      */
     abstract public function getLabel();
+
+    /**
+     * A block is only able to be viewed if each attribute's canView() returns true.
+     * 
+     * @param Member $member
+     * @return boolean
+     */
+    abstract public function canView(Member $member);
+
+    /**
+     * A block is only able to be edited if each attribute's canEdit() returns true.
+     * 
+     * @param Member $member
+     * @return boolean
+     */
+    abstract public function canEdit(Member $member);
+
+    /**
+     * A block is only able to be deleted if each attribute's canDelete() returns true.
+     * 
+     * @param Member $member
+     * @return boolean
+     */
+    abstract public function canDelete(Member $member);
 
     /**
      * @param string $value

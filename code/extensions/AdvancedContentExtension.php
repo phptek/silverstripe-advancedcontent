@@ -10,17 +10,17 @@
 class AdvancedContentExtension extends DataExtension
 {
     /**
-     * Allow different pagetypes to have a different block-rendering template.
+     * Allows for different pagetypes to have a different block-rendering template.
      * 
      * @var string
      */
-    private static $block_template = 'BlockList';
+    private static $template = 'BlockList';
 
     /**
      * @var array
      */
     private static $has_many = [
-        'AdvancedContentBlocks'    => 'ACBlock'
+        'AdvancedContentBlocks'    => 'AdvancedContentBlock'
     ];
     
     /**
@@ -33,35 +33,54 @@ class AdvancedContentExtension extends DataExtension
     {
         Requirements::css(ADVANCEDCONTENT_DIR . '/css/advancedcontent.css');
         Requirements::javascript(ADVANCEDCONTENT_DIR . '/javascript/advancedcontent.js');
+
+        $fields->removeByName('BlockSort');
         
         $blockGridFieldConf = GridFieldConfig_RecordEditor::create();
         $blockGridFieldConf->addComponent(GridFieldOrderableRows::create('BlockSort'));
         $blockGridFieldConf->getComponentByType('GridFieldAddNewButton')
             ->setButtonName('Add block');
-     //   $blockGridFieldConf->addComponent(GridFieldAdvancedContentAttributeActions::create());
         $blockGridField = GridField::create(
             'AdvancedContentBlocks',
-            _t('AdvancedContentExtension.Labels.BlockField', 'Advanced Blocks'),
-            $this->owner->AdvancedContentBlocks(),
+            _t('AdvancedContentExtension.Labels.BlockField', 'Advanced Content Blocks'),
+            $this->owner->getComponents('AdvancedContentBlocks'),
             $blockGridFieldConf
         );
 
         $fields->addFieldToTab('Root.AdvancedContent', $blockGridField);
     }
+
+    /**
+     * @return ArrayList $list
+     */
+    public function getBlocks()
+    {
+        $blocks = AdvancedContentBlock::get()->sort('BlockSort');
+        $list = ArrayList::create();
+        foreach ($blocks as $block) {
+            if (!$block->canView()) {
+                continue;
+            }
+
+            $list->push($block);
+        }
+        
+        return $list;
+    }
     
     /**
-     * A list of blocks to iterate over in a custom (and overridable) template, then injected into Page.ss $Content
-     * variable.
+     * A list of blocks to iterate over in a custom (and overridable) template, then injected into the Page.ss $Content
+     * template variable.
      * 
      * @return HTMLText
      */
     public function Content()
     {
         $data = ArrayData::create([
-            'Blocks' => ACBlock::get()->sort('BlockSort'),
+            'Blocks' => $this->getBlocks(),
         ]);
         
-        return $this->owner->renderWith($this->owner->config()->block_template, $data);
+        return $this->owner->renderWith($this->owner->config()->template, $data);
     }
 
 }

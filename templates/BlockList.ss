@@ -1,9 +1,9 @@
-<% if $Blocks() %>
+<% if $Blocks %>
 <div id="advanced-content-block-list">
-    <% loop $Blocks() %>
+    <% loop $Blocks %>
         <div class="block-outer">
             <div class="block-inner $ClassName">
-                $BlockView()
+                $BlockView
             </div>
         </div>
     <% end_loop %>

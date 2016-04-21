@@ -37,5 +37,29 @@ class AdvancedContentAttribute_BlockCSS extends AdvancedContentAttribute
         
         return $field;
     }
+
+    /**
+     * @inheritdoc
+     */
+    public function canView(Member $member)
+    {
+        return true;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function canEdit(Member $member)
+    {
+        return true;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function canDelete(Member $member)
+    {
+        return true;
+    }
     
 }

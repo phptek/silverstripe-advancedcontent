@@ -57,12 +57,13 @@ class AdvancedContentAttribute_Embargo extends AdvancedContentAttribute
      */
     public function getDate()
     {
-        $date = SS_Datetime::create()->setValue($this->getValueForUserControl());
+        $date = SS_Datetime::create();
+        $date->setValue($this->getValueForUserControl());
         if ($func = $this->getDateFormat() && is_callable($date::$func)) {
             $date = $date->$func();
         }
-        
-        return $date;
+
+        return $date->getValue();
     }
     
     /**
@@ -79,6 +80,37 @@ class AdvancedContentAttribute_Embargo extends AdvancedContentAttribute
         $field = parent::UserControl('DateField');
         
         return $field;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function canView(Member $member = null)
+    {
+        if (is_null($this->getDate())) {
+            return true;
+        }
+        
+        $dateCurrent = time();
+        $dateEmbargo = strtotime($this->getDate());
+        
+        return $dateCurrent >= $dateEmbargo; // let's be precise..
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function canEdit(Member $member = null)
+    {
+        return true;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function canDelete(Member $member = null)
+    {
+        return true;
     }
 
 }

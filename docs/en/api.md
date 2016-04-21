@@ -51,7 +51,7 @@ project's YML config thus:
 As well as enabling and disabling attributes, developers can also create custom attributes. Simple create a new class
 that subclasses the `AdvancedContentAttribute` abstract class, and ensure all necessary methods are declared.
 
-You can see how attributes are called andused by looking at the `ACBlock` class.
+You can see how attributes are called and used by looking at the `AdvancedContentBlock` class.
     
 ## Service
 

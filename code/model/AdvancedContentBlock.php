@@ -2,14 +2,14 @@
 
 /**
  * Advanced Content Block.
- * Wraps or "proxies" all native and module-specific DataObject subclasses for manipulation via the ACE.
+ * Wraps / proxies all native SilverStripe and module-specific DataObject subclasses, for manipulation via the GridField.
  * 
  * @package silverstripe-advancedcontent
  * @subpackage model
  * @author Russell Michell 2016 <russ@theruss.com>
  * @todo Add a cleanup routine in onBeforeWrite for unused, stored attribute data. Use YML config to _enable_ this behaviour.
  */
-class ACBlock extends DataObject
+class AdvancedContentBlock extends DataObject
 {
 
     /**
@@ -31,11 +31,11 @@ class ACBlock extends DataObject
         'BlockID'       => 'Int',
         'BlockClass'    => 'Varchar(255)',
         'BlockSort'     => 'Int',
-        'Attributes'    => 'SimpleJSONText' // All "Attributes" are stored to a JSON structure
+        'AttributeData' => 'SimpleJSONText' // All "Attributes" are stored to a JSON structure
     ];
 
     /**
-     * An ACBlock can be related to a "parent" Page or DataObject
+     * An AdvancedContentBlock can be related to a "parent" Page or DataObject
      * @var array
      */
     private static $has_one = [
@@ -47,13 +47,6 @@ class ACBlock extends DataObject
      * @var string
      */
     private static $default_sort = 'BlockSort';
-
-    /**
-     * @var array
-     */
-    private static $defaults = [
-        'BlockSort' => 1
-    ];
 
     /**
      * @return array
@@ -115,16 +108,22 @@ class ACBlock extends DataObject
         $fields->addFieldToTab('Root.Main', $blockTypeField);
 
         $blockRecordClass = $this->getField('BlockClass');
-        if($this->exists() && $blockRecordClass) {
-            // Now that a block class selection exists, we don't need it anymore do we..
+        if ($blockRecordClass && $this->exists()) {
+            $blockRecord = $this->getProxiedObject();
+            
+            // Now that a block class selection exists, we don't need it anymore.
             $fields->dataFieldByName('BlockClass')
                 ->setDisabled(true)
                 ->setReadonly(true)
                 ->setEmptyString('dummy'); // The only way to disable validation
             
-            $cmsFields = $blockRecordClass::create()->getCMSFields()->toArray();
+            $cmsFields = $blockRecordClass::create()->getCMSFields();
+            // Populate the proxied model field's data
+            if ($blockRecord) {
+                $cmsFields->setValues($blockRecord->toMap());
+            }
             $attFields = $this->attributeControls(AdvancedContentAttribute::ADV_ATTR_TYPE_FORM)->toArray();
-            $blockFields = FieldList::create(array_merge($cmsFields, $attFields));
+            $blockFields = FieldList::create(array_merge($cmsFields->toArray(), $attFields));
             
             // Add the block-class's fields along with those of its attribute(s)
             $fields->addFieldsToTab('Root.Main', $blockFields);
@@ -146,6 +145,29 @@ class ACBlock extends DataObject
     }
 
     /**
+     * Does this object have a related and named {@link AdvancedContentAttribute}?
+     * 
+     * @param string $attrName
+     * @return boolean
+     */
+    public function hasAttribute($attrName)
+    {
+        $proxiedAttrs = $this->getAttributes();
+        $hasAttr = false;
+        foreach ($proxiedAttrs as $className => $instArray) {
+            array_walk($instArray, function ($v, $k) use ($attrName, &$hasAttr) {
+                list($base, $matchTarget) = explode('_', $v->class);
+                if ($matchTarget === $attrName) {
+                    // assignment on break
+                    return $hasAttr = true;
+                }
+            });
+        }
+        
+        return $hasAttr;
+    }
+
+    /**
      * Set the "Attributes" field value to our JSON storage. Used in onBeforeWrite().
      *
      * @return null|void
@@ -153,18 +175,19 @@ class ACBlock extends DataObject
     private function setAttributeFieldValue()
     {
         // Get all our attribute objects
-        $proxiedAttrs = $this->getProxiedObjectAttributes();
+        $proxiedAttrs = $this->getAttributes();
+        
         $data = [];
         foreach ($proxiedAttrs as $attrObjArr) {
             foreach ($attrObjArr as $attrObj) {
                 $dataKey = $attrObj->getFieldName();
                 $dataVal = $this->getRequest()->postVar($dataKey);
-                    $data[] = $this->dbObject('Attributes')->setValueForKey($dataKey, $dataVal);
+                $data[$dataKey] = $dataVal;
             }
         }
         
-        // This works because setValueForKey() always takes the _entire_ field contents into account and returns it
-        $this->setField('Attributes', end($data));
+        $json = $this->dbObject('AttributeData')->toJson($data);
+        $this->setField('AttributeData', $json);
     }
 
     /**
@@ -176,11 +199,11 @@ class ACBlock extends DataObject
      */
     public function getAttributeValueFor($attrName)
     {
-        return $this->dbObject('Attributes')->getValueForKey($attrName);
+        return $this->dbObject('AttributeData')->getValueForKey($attrName);
     }
 
     /**
-     * Returns the object that ths ACBlock proxies.
+     * Returns the object that ths AdvancedContentBlock proxies.
      * @return mixed null|DataObject
      */
     public function getProxiedObject()
@@ -193,7 +216,6 @@ class ACBlock extends DataObject
         }
         
         return null;
-
     }
 
     /**
@@ -240,7 +262,7 @@ class ACBlock extends DataObject
     }
 
     /**
-     * @return SS_HTTPRequest $request
+     * @return SS_HTTPRequest
      * @todo This is bad
      */
     public function getRequest()
@@ -251,41 +273,84 @@ class ACBlock extends DataObject
     /**
      * @param Member $member
      * @return boolean
-     * @todo Once we implement a "Permission" attribute.
      */
     public function canView($member = null)
     {
+        if (parent::canView($member)) {
+            return true;
+        }
+
+        // No related object at this point, just return true
+        if (!$proxied = $this->getProxiedObject()) {
+            return true;
+        }
+        
+        $attributes = $this->getAttributesFor($proxied->class);
+        foreach ($attributes as $attribute) {
+            // If even _one_ attribute returns false for its canView(), then the block is not viewable.
+            if (!$attribute->canView($member)) {
+                return false;
+            }
+        }
+        
         return true;
     }
 
     /**
      * @param Member $member
      * @return boolean
-     * @todo Once we implement a "Permission" attribute.
      */
     public function canEdit($member = null)
     {
-        return true;
+        // No related object at this point, just return true
+        if (!$proxied = $this->getProxiedObject()) {
+            return true;
+        }
+        
+        $attributes = $this->getAttributesFor($proxied->class);
+        foreach ($attributes as $attribute) {
+            // If even _one_ attribute returns false for its canView(), then the block is not viewable.
+            if ($attribute->canEdit($member) !== true) {
+                return false;
+            }
+        }
+
+        return $this->canView($member);
     }
 
     /**
      * @param Member $member
      * @return boolean
-     * @todo Once we implement a "Permission" attribute.
      */
     public function canDelete($member = null)
     {
-        return true;
+        // No related object at this point, just return true
+        if (!$proxied = $this->getProxiedObject()) {
+            return true;
+        }
+        
+        $attributes = $this->getAttributesFor($proxied->class);
+        foreach ($attributes as $attribute) {
+            // If even _one_ attribute returns false for its canView(), then the block is not viewable.
+            if ($attribute->canDelete($member) !== true) {
+                return false;
+            }
+        }
+
+        return $this->canView($member);
     }
 
     /**
-     * Returns an array of {@link AdvancedContentAttribute} subclasses enabled via YML for the related block DataObject.
+     * Returns an array of {@link AdvancedContentAttribute} subclasses enabled via YML for the related block object.
      * 
-     * @return mixed
+     * @return array $list
      */
-    public function getProxiedObjectAttributes()
+    public function getAttributes()
     {
-        $proxied = $this->getProxiedObject();
+        if (!$proxied = $this->getProxiedObject()) {
+            return [];
+        }
+        
         $attrsEnabled = $proxied->config()->attributes_enabled;
         $attrsDisabled = $proxied->config()->attributes_disabled ?: [];
         
@@ -303,6 +368,22 @@ class ACBlock extends DataObject
         
         return $list;
     }
+
+    /**
+     * Return an array of {@link AdvancedContentAttribute} objects, configured on this block for the passed $className.
+     * 
+     * @param string $className
+     * @return array
+     */
+    public function getAttributesFor($className)
+    {
+        $attributeData = $this->getAttributes();
+        if (!isset($attributeData[$className])) {
+            return [];
+        }
+        
+        return $attributeData[$className];
+    }
     
     /**
      * Template method for each of the {@link AdvancedContentAttributes} registered with this block's proxied object.
@@ -315,7 +396,7 @@ class ACBlock extends DataObject
     public function attributeControls($context)
     {
         $list = FieldList::create();
-        $proxiedAttrs = $this->getProxiedObjectAttributes();
+        $proxiedAttrs = $this->getAttributes();
         foreach ($proxiedAttrs as $proxiedClass => $attrList) {
             foreach ($attrList as $attrObj) {
                 if (($attrObj->getType() == $context)) {
@@ -327,7 +408,7 @@ class ACBlock extends DataObject
         if ($list->count()) {
             $list->unshift(HeaderField::create(
                 'AttributeHeading',
-                _t('AdvancedContent.ACBlock.Labels.Attributes.Heading', 'Block attributes'),
+                _t('AdvancedContent.AdvancedContentBlock.Labels.Attributes.Heading', 'Block attributes'),
                 4
             ));
         }
@@ -336,7 +417,7 @@ class ACBlock extends DataObject
     }
 
     /**
-     * Template method used to render each block in a frontend list.
+     * Template method used to render each block within a frontend list.
      *
      * @return mixed null|HTMLText
      * 
