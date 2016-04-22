@@ -1,7 +1,7 @@
 {
     "name": "phptek/advancedcontent",
     "type": "silverstripe-module",
-    "description": "Because forcing structure into blobs of text sucks.",
+    "description": "The future of content editing is here...",
     "homepage": "http://theruss.com/",
     "license": "BSD",
     "keywords": ["silverstripe", "advanced", "content", "block", "blocks", "content", "API"],

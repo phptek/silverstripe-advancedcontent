@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Simple field for storing, writing-to and querying JSON formatted data. The field is "simple" in that it does not 
+ * Simple text-based database field for storing and querying JSON formatted data. The field is "simple" in that it does not 
  * allow for multidimensional data.
  * 
  * Note: All getXX(), first(). nth() and last() methods will return `null` if no result is found. This behaviour 
@@ -10,9 +10,6 @@
  * @package silverstripe-advancedcontent
  * @subpackage fields
  * @author Russell Michell 2016 <russ@theruss.com>
- * @todo Put into own package ala phptek/silverstripe-simplejsontext
- *     in MySQL or PostGres
- * @todo Add a deleteForKey() method
  */
 class SimpleJSONText extends StringField
 {
@@ -108,32 +105,6 @@ class SimpleJSONText extends StringField
         }
 
         return null;
-    }
-
-    /**
-     * Set a value for a specific JSON key, and return the lot back so that it can be written to the field by
-     * calling logic.
-     * 
-     * @param mixed $key The JSON key who's value should be modified with $value.
-     * @param array $value The array of data that should update existing field-data identified by $key.
-     * @return string
-     */
-    public function setValueToKey($key, $value)
-    {
-        $currentData = $this->getValueAsArray();
-        $currentData[$key] = $value;
-        
-        $isValid = is_array($currentData) && count($currentData);
-        $array = [];
-        
-        // Cleanup
-        if ($isValid) {
-            array_walk_recursive($currentData, function ($v, $k) use (&$array) {
-                $array[$k] = Convert::raw2sql($v);
-            });
-        }
-
-        return $this->toJson($array);
     }
 
     /**
@@ -247,6 +218,28 @@ class SimpleJSONText extends StringField
 
        // array_search($value, $data);
         //array_keys
+    }
+    
+    /**
+     * Converts special JSON characters in incoming data. Use the $invert param to convert strings coming back out.
+     * 
+     * @param string $value
+     * @param boolean $invert 
+     * @return string
+     */
+    public function jsonSafe($value, $invert = false)
+    {
+        $map = [
+            '{' => '%7B',
+            '}' => '%7D',
+            '"' => '&quot;'
+        ];
+        
+        if ($invert) {
+            $map = array_flip($map);
+        }
+        
+        return str_replace(array_keys($map), array_values($map), $value);
     }
 
 }

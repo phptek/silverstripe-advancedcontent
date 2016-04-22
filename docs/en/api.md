@@ -1,17 +1,24 @@
 # Developer API
 
-The module offers a small but useful public API that allows developers to craft their own custom blocks.
+The module offers a developer API that allows developers to craft their own custom content blocks. The types of blocks that are possible
+are pretty much limitless, but as a starter for 10:
+
+* Arbitrary CMS configurable ORM queries
+* 3rd party API data
+* Multi-column layouts
 
 ## Creating a custom block
 
-All an advanced content block really is, is a `DataObject` subclass that implements `AdvancedContentBlockProvider`.
+An advanced content block isn't just one class, it's a `DataObject` subclass that implements `AdvancedContentBlockProvider` related to
+an instance of `AdvancedContentBlock`. Each "block" is also configurable via YML with 1 or more "Attributes", where an attribute subclasses
+the abstract `AdvancedContentAttribute` class. (See `code/attributes` for pre-configured attributes).
 
 In addition, a custom block should define a `$singular_name` as a private static (SilverStripe config variable) 
 at which point the block will show in the "Block type" dropdown in the CMS.
 
 ### Example
 
-    class MyBlock extends Databject implements AdvancedContentBlockProvider
+    class MyObject extends Databject implements AdvancedContentBlockProvider
     {
         /**
          * @var string

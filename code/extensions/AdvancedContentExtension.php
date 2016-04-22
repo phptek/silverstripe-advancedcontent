@@ -19,6 +19,13 @@ class AdvancedContentExtension extends DataExtension
     /**
      * @var array
      */
+    private static $db = [
+        'HideWYSIWYG'   => 'Boolean'
+    ];
+
+    /**
+     * @var array
+     */
     private static $has_many = [
         'AdvancedContentBlocks'    => 'AdvancedContentBlock'
     ];
@@ -34,7 +41,19 @@ class AdvancedContentExtension extends DataExtension
         Requirements::css(ADVANCEDCONTENT_DIR . '/css/advancedcontent.css');
         Requirements::javascript(ADVANCEDCONTENT_DIR . '/javascript/advancedcontent.js');
 
+        if ($this->owner->HideWYSIWYG) {
+            $fields->removeByName('Content'); // Yay, yay the witch is dead!
+        }
         $fields->removeByName('BlockSort');
+
+        $blockTitleField = LiteralField::create(
+            'BlockTitle',
+            '<p class="message">' . _t('AdvancedContentExtension.Labels.Content', 'Content') . '</p>'
+        );
+        $hideEditorField = CheckboxField::create(
+            'HideWYSIWYG',
+            _t('AdvancedContentExtension.Labels.HideWYSIWYGField', 'Hide WYSIWYG')
+        );
         
         $blockGridFieldConf = GridFieldConfig_RecordEditor::create();
         $blockGridFieldConf->addComponent(GridFieldOrderableRows::create('BlockSort'));
@@ -47,7 +66,11 @@ class AdvancedContentExtension extends DataExtension
             $blockGridFieldConf
         );
 
-        $fields->addFieldToTab('Root.AdvancedContent', $blockGridField);
+        $fields->addFieldsToTab('Root.Main', [
+            $blockTitleField,
+            $hideEditorField,
+            $blockGridField
+        ]);
     }
 
     /**
@@ -76,8 +99,10 @@ class AdvancedContentExtension extends DataExtension
      */
     public function Content()
     {
+        $showWYSIWYG = !$this->owner->getField('HideWYSIWYG');
         $data = ArrayData::create([
-            'Blocks' => $this->getBlocks(),
+            'WYSIWYG'   => $showWYSIWYG ? $this->owner->getField('Content') : null,
+            'Blocks'    => $this->getBlocks(),
         ]);
         
         return $this->owner->renderWith($this->owner->config()->template, $data);

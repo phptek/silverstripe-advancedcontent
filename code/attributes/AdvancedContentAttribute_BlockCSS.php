@@ -29,37 +29,13 @@ class AdvancedContentAttribute_BlockCSS extends AdvancedContentAttribute
     /**
      * @inheritdoc
      */
-    public function UserControl($useField = 'TextField', array $config = [])
+    public function UserControl($useField = 'TextField', $useName = '', array $config = [])
     {
         $field = TextField::create($this->getFieldName(), $this->getLabel());
         $field->addExtraClass($this->getCSSClass());
         $field->setValue($this->getValueForUserControl());
         
         return $field;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function canView(Member $member)
-    {
-        return true;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function canEdit(Member $member)
-    {
-        return true;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function canDelete(Member $member)
-    {
-        return true;
     }
     
 }

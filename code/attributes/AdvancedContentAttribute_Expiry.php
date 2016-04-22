@@ -69,7 +69,7 @@ class AdvancedContentAttribute_Expiry extends AdvancedContentAttribute
     /**
      * @inheritdoc
      */
-    public function UserControl($useField = 'TextField', array $config = [])
+    public function UserControl($useField = 'TextField', $useName = '', array $config = [])
     {
         Config::inst()->update('DateField', 'default_config', [
             'showcalendar'      => true,
@@ -88,29 +88,13 @@ class AdvancedContentAttribute_Expiry extends AdvancedContentAttribute
     public function canView(Member $member = null)
     {
         if (is_null($this->getDate())) {
-            return true;
+            return parent::canView($member);
         }
         
         $dateCurrent = time();
         $dateExpiry = strtotime($this->getDate());
 
         return $dateCurrent < $dateExpiry;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function canEdit(Member $member = null)
-    {
-        return true;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function canDelete(Member $member = null)
-    {
-        return true;
     }
 
 }

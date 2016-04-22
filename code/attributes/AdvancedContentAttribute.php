@@ -22,9 +22,8 @@
  * @subpackage attributes
  * @author Russell Michell 2016 <russ@theruss.com>
  */
-    abstract class AdvancedContentAttribute extends Object
+abstract class AdvancedContentAttribute
 {
-
     /**
      * Show this attribute's UI widget within a GridField row.
      * Not implemented yet.
@@ -41,10 +40,34 @@
     const ADV_ATTR_TYPE_FORM = 2;
 
     /**
+     * @var AdvancedContentBlock
+     */
+    protected $contentObject;
+
+    /**
+     * @var string
+     */
+    protected $attributeName = '';
+
+    /**
      * @var string
      */
     protected $valueForUserControl = '';
-    
+
+    /**
+     * @param AdvancedContentBlock $contentBlock
+     * @param string $attrName The name of the instantiated attribute after the underscore in its class-name
+     * @param mixed $value
+     */
+    public function __construct(AdvancedContentBlock $contentBlock, $attrName, $value = null)
+    {
+        $this->contentObject = $contentBlock;
+        $this->attributeName = $attrName;
+        if ($value) {
+            $this->setValueForUserControl($value);
+        }
+    }
+
     /**
      * Inform the module what type this attribute is. 
      * Return value must be one of the ADV_ATTR_TYPE_XXX class constants.
@@ -66,7 +89,10 @@
      * @param Member $member
      * @return boolean
      */
-    abstract public function canView(Member $member);
+    public function canView(Member $member = null)
+    {
+        return true;
+    }
 
     /**
      * A block is only able to be edited if each attribute's canEdit() returns true.
@@ -74,7 +100,10 @@
      * @param Member $member
      * @return boolean
      */
-    abstract public function canEdit(Member $member);
+    public function canEdit(Member $member = null)
+    {
+        return true;
+    }
 
     /**
      * A block is only able to be deleted if each attribute's canDelete() returns true.
@@ -82,7 +111,10 @@
      * @param Member $member
      * @return boolean
      */
-    abstract public function canDelete(Member $member);
+    public function canDelete(Member $member = null)
+    {
+        return true;
+    }
 
     /**
      * @param string $value
@@ -107,17 +139,23 @@
      * Template method to show the UI widget for use on each block either in the GridField row itself, in the form 
      * scaffolded by getCMSFields() or both.
      * 
-     * The display location for this field is decided by $this->getType()
+     * The display location for this field is decided by $this->getType().
      *
-     * @param mixed string|null $useField
+     * @param string $useField
+     * @param string $useName   If a custom name is used here, then saving to JSON storage is skipped. This can be useful
+     *                          when saving data to a relational (has|many) field. See the "PermissionsView" attribute 
+     *                          for an example scenario.
      * @param array $config
-     * @return FormField
+     * @return mixed FormField | FieldList
      */
-    public function UserControl($useField = 'TextField', array $config = [])
+    public function UserControl($useField = 'TextField', $useName = '', array $config = [])
     {
-        $field = $useField::create($this->getFieldName(), $this->getLabel());
+        $fieldName = $useName ?: $this->getFieldName();
+        $field = $useField::create($fieldName, $this->getLabel());
         $field->addExtraClass($this->getCSSClass());
-        $field->setValue($this->getValueForUserControl());
+        if (in_array($useField, ClassInfo::subclassesFor('TextField'))) {
+            $field->setValue($this->getValueForUserControl());
+        }
         
         if ($config && $field->hasMethod('setConfig')) {
             $field->setConfig($config);
@@ -131,7 +169,7 @@
      */
     public function getCSSClass()
     {
-        return strtolower(preg_replace("#[^a-zA-Z]+#", '-', $this->class));
+        return strtolower(preg_replace("#[^a-zA-Z]+#", '-', $this->attributeName));
     }
 
     /**

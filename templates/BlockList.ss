@@ -1,3 +1,4 @@
+$WYSIWYG
 <% if $Blocks %>
 <div id="advanced-content-block-list">
     <% loop $Blocks %>

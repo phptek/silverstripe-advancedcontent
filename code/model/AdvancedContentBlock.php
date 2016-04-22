@@ -26,6 +26,7 @@ class AdvancedContentBlock extends DataObject
     
     /**
      * @var array
+     * @todo Rename "BlockXX" fields to "Partner" or "SSObject" etc
      */
     private static $db = [
         'BlockID'       => 'Int',
@@ -41,6 +42,16 @@ class AdvancedContentBlock extends DataObject
     private static $has_one = [
         'ParentPage' => 'SiteTree',
         'ParentData' => 'DataObject'
+    ];
+
+    /**
+     * Group relations used when "Permissions" attribute is configured.
+     * 
+     * @var array
+     */
+    private static $many_many = [
+        'ViewGroups'    => 'Group',
+        'EditGroups'    => 'Group'
     ];
 
     /**
@@ -124,6 +135,9 @@ class AdvancedContentBlock extends DataObject
             }
             $attFields = $this->attributeControls(AdvancedContentAttribute::ADV_ATTR_TYPE_FORM)->toArray();
             $blockFields = FieldList::create(array_merge($cmsFields->toArray(), $attFields));
+            
+/*            Debug::dump(count($attFields));
+            die;*/
             
             // Add the block-class's fields along with those of its attribute(s)
             $fields->addFieldsToTab('Root.Main', $blockFields);
@@ -276,12 +290,16 @@ class AdvancedContentBlock extends DataObject
      */
     public function canView($member = null)
     {
-        if (parent::canView($member)) {
-            return true;
-        }
-
         // No related object at this point, just return true
         if (!$proxied = $this->getProxiedObject()) {
+            return true;
+        }
+        
+        if (!$member) {
+            $member = Member::currentUser();
+        }
+        
+        if (Permission::check('ADMIN', 'any', $member)) {
             return true;
         }
         
@@ -344,6 +362,7 @@ class AdvancedContentBlock extends DataObject
      * Returns an array of {@link AdvancedContentAttribute} subclasses enabled via YML for the related block object.
      * 
      * @return array $list
+     * @todo Cache
      */
     public function getAttributes()
     {
@@ -359,7 +378,8 @@ class AdvancedContentBlock extends DataObject
             foreach ($attrsEnabled as $attrClass) {
                 // Attributes are enabled by default in module YML, but may also be _disabled_ in userland YML
                 if(!in_array($attrClass, $attrsDisabled)) {
-                    $attrObj = $attrClass::create();
+                    list($start, $end) = explode('_', $attrClass);
+                    $attrObj = Injector::inst()->createWithArgs($attrClass, [$this, $end, null]);
                     $attrObj->setValueForUserControl($this->getAttributeValueFor($attrObj->getFieldName()));
                     $list[$proxied->class][] = $attrObj;
                 }
@@ -397,11 +417,23 @@ class AdvancedContentBlock extends DataObject
     {
         $list = FieldList::create();
         $proxiedAttrs = $this->getAttributes();
+        
         foreach ($proxiedAttrs as $proxiedClass => $attrList) {
             foreach ($attrList as $attrObj) {
-                if (($attrObj->getType() == $context)) {
-                    $list->push($attrObj->UserControl());
+                $type = $attrObj->getType();
+                $control = $attrObj->UserControl();
+                if (($type != $context)) {
+                    continue;
                 }
+                
+                if ($control instanceof FieldList) {
+                    foreach ($control as $field) {
+                        $list->push($field);
+                    }
+                } else {
+                    $list->push($control);
+                }
+
             }
         }
         

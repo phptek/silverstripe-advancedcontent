@@ -10,3 +10,5 @@ TextObject:
   attributes_enabled:
     - AdvancedContentAttribute_Embargo
     - AdvancedContentAttribute_Expiry
+    - AdvancedContentAttribute_PermissionsCanView
+    - AdvancedContentAttribute_PermissionsCanEdit
