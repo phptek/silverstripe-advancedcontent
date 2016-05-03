@@ -18,6 +18,10 @@ As a Content Author, Information Architect or Developer, have you ever wanted to
  2. Performance parity with SilverStripe's out of the box Content field
  3. A complete developer API allowing for further content management advancements
 
+## Notice
+
+This module is still in development and is NOT READY for use in projects (As at 03 /05/2016) 
+
 ## Compatibility
 
 * PHP v5.4+
