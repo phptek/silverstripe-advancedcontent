@@ -462,5 +462,17 @@ class AdvancedContentBlock extends DataObject
         
         return null;
     }
+    
+    /**
+     * The summary that is shown in search-results i.e. use the Content field of the proxied objecft...??
+     * 
+     * @return string
+     */
+    public function ContextSummary()
+    {
+        $proxiedContent = $this->getProxiedObject();
+        
+        return $proxiedContent->Content()->ContextSummary();
+    }
 
 }
