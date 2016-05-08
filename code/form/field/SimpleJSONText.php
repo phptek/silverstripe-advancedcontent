@@ -6,6 +6,14 @@
  * 
  * Note: All getXX(), first(). nth() and last() methods will return `null` if no result is found. This behaviour 
  * may change in future versions, but will likely be governed by config settings.
+ *
+ * Example definition via {@link DataObject::$db}:
+ * 
+ * <code>
+ * static $db = array(
+ * 	"MyJSONStructure" => "SimpleJSONText",
+ * );
+ * </code>
  * 
  * @package silverstripe-advancedcontent
  * @subpackage fields

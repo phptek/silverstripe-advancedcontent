@@ -28,6 +28,16 @@ class HeadingObject extends DataObject implements AdvancedContentBlockProvider
     ];
 
     /**
+     * An array of fields to be indexed by fulltextsearch engines.
+     *
+     * @var array
+     */
+    private static $fulltextsearch_fields = [
+        'Title',
+        'Content'
+    ];
+
+    /**
      * @return FieldList
      * @todo Why doesn't the 'Content' field retain its value?
      */
@@ -48,11 +58,41 @@ class HeadingObject extends DataObject implements AdvancedContentBlockProvider
 
         return $fields;
     }
+
+    /**
+     * Dedicated method to show a title, useful for search results for example.
+     *
+     * @todo Extend DataExtension for common Native/Module object logic
+     * @return string
+     */
+    public function Title()
+    {
+        if (!$block = $this->getBlock()) {
+            return '';
+        }
+
+        return $block->ParentPage()->Title;
+    }
+
+    /**
+     * Dedicated method to show a link, useful for search results for example.
+     *
+     * @todo Extend DataExtension for common Native/Module object logic
+     * @return string
+     */
+    public function Link()
+    {
+        if (!$block = $this->getBlock()) {
+            return '';
+        }
+
+        return $block->ParentPage()->Link();
+    }
     
     /**
      * @return string
      */
-    public function BlockView()
+    public function Content()
     {
         $tag = 'h' . $this->getField('Level');
         

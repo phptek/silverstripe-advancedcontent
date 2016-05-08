@@ -20,8 +20,8 @@ interface AdvancedContentBlockProvider
     public function getCMSFields();
     
     /**
-     * @return string
+     * @return mixed string|HTMLText
      */
-    public function BlockView();
+    public function Content();
     
 }

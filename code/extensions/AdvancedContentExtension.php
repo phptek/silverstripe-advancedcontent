@@ -29,6 +29,16 @@ class AdvancedContentExtension extends DataExtension
     private static $has_many = [
         'AdvancedContentBlocks'    => 'AdvancedContentBlock'
     ];
+
+    /**
+     * An array of fields to be indexed by fulltextsearch engines.
+     *
+     * @var array
+     */
+    private static $fulltextsearch_fields = [
+        'Title',
+        'Content'
+    ];
     
     /**
      * Build us a sortable GridField.

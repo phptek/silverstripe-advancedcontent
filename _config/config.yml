@@ -9,3 +9,7 @@ Image:
   # Curious: Image doesn't specify these statics..
   singular_name: Image
   plural_name: Images
+  
+Injector:
+  CwpSearchEngine:
+    class: AdvancedContentFulltextSearch

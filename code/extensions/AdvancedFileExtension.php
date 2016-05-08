@@ -1,6 +1,6 @@
 <?php
 /**
- * Decorates {@link File} and subclasses to confer specific behaviour onto these objects.
+ * Decorates {@link File}. This ensures the module has a common API to work with for native and module-specific DataObjects.
  *
  * @package silverstripe-advancedcontent
  * @author Russell Michell 2016 <russ@theruss.com>
@@ -21,14 +21,6 @@ class AdvancedContentFileExtension extends DataExtension
     {
         return false;
     }
-
-    /**
-     * @todo
-     */
-    public function BlockView()
-    {
-        return $this->owner->getFilename();
-    }
     
     /**
      * @return boolean
@@ -44,6 +36,45 @@ class AdvancedContentFileExtension extends DataExtension
     private function isFile()
     {
         return !$this->isImage() && in_array($this->owner->class, ClassInfo::subclassesFor('File'));
+    }
+
+    /**
+     * Dedicated method to show a title, useful for search results for example.
+     *
+     * @todo Extend DataExtension for common Native/Module object logic
+     * @return string
+     */
+ //   public function Title()
+ //   {
+/*        if (!$block = $this->getBlock()) {
+            return '';
+        }
+
+        return $block->ParentPage()->Title;*/
+  //  }
+
+    /**
+     * Dedicated method to show a link, useful for search results for example.
+     *
+     * @todo Extend DataExtension for common Native/Module object logic
+     * @return string
+     */
+//    public function Link()
+//    {
+/*        if (!$block = $this->getBlock()) {
+            return '';
+        }
+
+        return $block->ParentPage()->Link();*/
+  //  }
+    
+    /**
+     * @todo
+     * Needs to be 
+     */
+    public function Content()
+    {
+        return $this->owner->getFilename();
     }
     
 }

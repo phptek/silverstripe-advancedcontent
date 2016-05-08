@@ -108,6 +108,8 @@ class AdvancedContentBlock extends DataObject
         $fields->removeByName('BlockSort');
         $fields->removeByName('ParentPageID');
         $fields->removeByName('ParentDataID');
+        $fields->removeByName('ViewGroups');
+        $fields->removeByName('EditGroups');
 
         $blockTypes = $this->acService->getBlockTypes()->map('ClassName', 'SingularName');
         $blockTypeField = DropdownField::create(
@@ -135,9 +137,6 @@ class AdvancedContentBlock extends DataObject
             }
             $attFields = $this->attributeControls(AdvancedContentAttribute::ADV_ATTR_TYPE_FORM)->toArray();
             $blockFields = FieldList::create(array_merge($cmsFields->toArray(), $attFields));
-            
-/*            Debug::dump(count($attFields));
-            die;*/
             
             // Add the block-class's fields along with those of its attribute(s)
             $fields->addFieldsToTab('Root.Main', $blockFields);
@@ -327,7 +326,7 @@ class AdvancedContentBlock extends DataObject
         
         $attributes = $this->getAttributesFor($proxied->class);
         foreach ($attributes as $attribute) {
-            // If even _one_ attribute returns false for its canView(), then the block is not viewable.
+            // If even _one_ attribute returns false for its canEdit(), then the block is not editable.
             if ($attribute->canEdit($member) !== true) {
                 return false;
             }
@@ -349,7 +348,7 @@ class AdvancedContentBlock extends DataObject
         
         $attributes = $this->getAttributesFor($proxied->class);
         foreach ($attributes as $attribute) {
-            // If even _one_ attribute returns false for its canView(), then the block is not viewable.
+            // If even _one_ attribute returns false for its canDelete(), then the block is not deletable.
             if ($attribute->canDelete($member) !== true) {
                 return false;
             }
@@ -452,27 +451,22 @@ class AdvancedContentBlock extends DataObject
      * Template method used to render each block within a frontend list.
      *
      * @return mixed null|HTMLText
-     * 
      */
     public function BlockView()
     {
         if ($proxiedBlock = $this->getProxiedObject()) {
-            return $proxiedBlock->BlockView();
+            // For search results and other contexts, cast as HTMLText so {@link Text::ContextSummary)} can be called.
+            $content = $proxiedBlock->Content();
+            if (!$content instanceof HTMLText) {
+                $htmlTextObj = HTMLText::create();
+                $htmlTextObj->setValue($content);
+                $content = $htmlTextObj->getValue();
+            }
+            
+            return $content;
         }
-        
+
         return null;
-    }
-    
-    /**
-     * The summary that is shown in search-results i.e. use the Content field of the proxied objecft...??
-     * 
-     * @return string
-     */
-    public function ContextSummary()
-    {
-        $proxiedContent = $this->getProxiedObject();
-        
-        return $proxiedContent->Content()->ContextSummary();
     }
 
 }
